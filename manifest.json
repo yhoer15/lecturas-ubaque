@@ -1,0 +1,27 @@
+{
+  "name": "Lecturas Ubaque",
+  "short_name": "Lecturas",
+  "description": "Toma de lecturas con GPS - Alcaldía Municipal de Ubaque",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#050f08",
+  "theme_color": "#0a4f2e",
+  "orientation": "portrait",
+  "lang": "es",
+  "categories": ["utilities"],
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}
