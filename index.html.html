@@ -1,0 +1,462 @@
+﻿<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>OFICINA SERVICIOS PUBLICOS - ALCALDIA MUNICIPAL UBAQUE</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f9;
+            color: #333;
+        }
+
+        h1 {
+            text-align: center;
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            margin: 0;
+        }
+
+        .container {
+            padding: 20px;
+        }
+
+        .contador-form {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+        }
+
+        .button {
+            width: 100%;
+            padding: 12px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            margin-top: 10px;
+        }
+
+        .button:hover {
+            background-color: #45a049;
+        }
+
+        .user-list {
+            margin-top: 20px;
+            background-color: #fff;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .user-item {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+        }
+
+        .user-item:last-child {
+            border-bottom: none;
+        }
+
+        .user-item span {
+            display: inline-block;
+            margin-bottom: 5px;
+        }
+
+        .user-item .lectura-anterior {
+            font-weight: bold;
+        }
+
+        .user-item .bloqueado {
+            color: red;
+        }
+
+        #mensajeGuardado {
+            color: green;
+            font-weight: bold;
+            display: none;
+            text-align: center;
+        }
+
+        label[for="lecturaAnterior"] {
+            font-weight: bold;
+            color: red;
+            font-size: 18px;
+        }
+
+        #lecturaAnterior {
+            font-size: 24px;
+            font-weight: bold;
+            color: black;
+            padding: 20px;
+            border: 2px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+            margin: 10px auto;
+        }
+
+        #contador {
+            font-size: 24px;
+            font-weight: bold;
+            color: black;
+            padding: 20px;
+            border: 2px solid #ddd;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+            text-align: center;
+            width: 300px;
+            margin: 10px auto;
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
+</head>
+<body>
+    <h1>OFICINA SERVICIOS PUBLICOS ALCALDIA MUNICIPAL DE UBAQUE</h1>
+    <h2 id="nombreSector">SECTOR CARTEL DEL GUARAPO</h2>
+    <div class="container">
+        <!-- Selección de sector -->
+        <div class="contador-form">
+            <label for="sector">Sector:</label>
+            <select id="sector" class="button" onchange="cambiarSector()">
+                <option value="CASCO_URBANO">CASCO URBANO</option>
+                <option value="CARTEL_DEL_GUARAPO">CARTEL DEL GUARAPO</option>
+                <option value="FISTEGA">FISTEGA</option>
+                <option value="CARTAGENITA">CARTAGENITA</option>
+                <option value="CAQUEZA">CAQUEZA</option>
+                <option value="CACIQUE">CACIQUE</option>
+                <option value="URBANIZACION EL PORTAL">URBANIZACION EL PORTAL</option>
+                <option value="URBANIZACION LOS SAUCES">URBANIZACION LOS SAUCES</option>
+                <option value=" LA LAGUNA">LA LAGUNA</option>
+                
+                <!-- Agrega más sectores si es necesario -->
+            </select><br><br>
+            <label>Nombre del Usuario: </label>
+            <span id="usuarioNombre"></span><br><br>
+            <label>Ruta: </label>
+            <span id="ruta"></span><br><br>
+            <label>Dirección: </label>
+            <span id="direccion"></span><br><br>
+            <label>Lectura Anterior: </label>
+            <span id="lecturaAnterior">No disponible</span><br><br>
+            <label for="contador">Lectura medidor:</label>
+            <input type="number" id="contador" placeholder="Ingrese la lectura"><br><br>
+            <button class="button" onclick="guardarContador()">Guardar</button>
+            <button class="button" onclick="atrasUsuario()">Atrás</button>
+            <button class="button" onclick="siguienteUsuario()">Adelante</button>
+        </div>
+
+        <!-- Lista de usuarios -->
+        <div class="user-list">
+            <h3>Usuarios Registrados</h3>
+            <div id="userListContainer"></div>
+        </div>
+
+        <!-- Botón para descargar y compartir Excel -->
+        <div style="margin-top: 20px; text-align: center;">
+            <button class="button" onclick="descargarExcel()">Descargar Excel</button><br><br>
+            <button class="button" onclick="nuevaLectura()">Nueva Lectura</button>
+        </div>
+
+        <!-- Botón y campo para cargar archivo Excel y clave de acceso -->
+        <div style="margin-top: 20px; text-align: center;">
+            <input type="file" id="excelFile" class="button" accept=".xlsx, .xls" style="width: auto;">
+            <input type="password" id="claveAcceso" placeholder="Ingrese clave" class="button" style="width: auto;">
+            <button class="button" onclick="cargarExcel()">Cargar Usuarios</button><br><br>
+        </div>
+
+        <!-- Mensaje de lectura guardada -->
+        <div id="mensajeGuardado">Lectura guardada correctamente</div>
+    </div>
+
+    <script>
+        let sectorActual = "CASCO_URBANO"; // Sector por defecto
+        let usuarios = [];
+        let lecturas = [];
+        let usuarioIndex = 0;
+
+        // Función para cambiar de sector
+        function cambiarSector() {
+            sectorActual = document.getElementById("sector").value;
+            localStorage.setItem("sectorActual", sectorActual); // Guardar el sector actual
+            cargarDatosSector();
+            mostrarUsuario();
+            mostrarListaUsuarios();
+            document.getElementById("nombreSector").textContent = `SECTOR ${sectorActual.replace(/_/g, " ")}`;
+        }
+
+        // Cargar datos del sector actual
+        function cargarDatosSector() {
+            usuarios = JSON.parse(localStorage.getItem(`usuarios_${sectorActual}`)) || [];
+            lecturas = JSON.parse(localStorage.getItem(`lecturas_${sectorActual}`)) || [];
+            usuarioIndex = parseInt(localStorage.getItem(`usuarioIndex_${sectorActual}`)) || 0;
+        }
+
+        // Obtener el sector actual al cargar la página
+        window.onload = function () {
+            const sectorGuardado = localStorage.getItem("sectorActual");
+            if (sectorGuardado) {
+                sectorActual = sectorGuardado;
+                document.getElementById("sector").value = sectorActual;
+            }
+            cargarDatosSector();
+            mostrarUsuario();
+            mostrarListaUsuarios();
+            document.getElementById("nombreSector").textContent = `SECTOR ${sectorActual.replace(/_/g, " ")}`;
+        };
+
+        // Funciones para obtener y guardar datos en el localStorage
+        function guardarUsuarios() {
+            localStorage.setItem(`usuarios_${sectorActual}`, JSON.stringify(usuarios));
+        }
+
+        function guardarLecturas() {
+            localStorage.setItem(`lecturas_${sectorActual}`, JSON.stringify(lecturas));
+        }
+
+        function guardarUsuarioIndex() {
+            localStorage.setItem(`usuarioIndex_${sectorActual}`, usuarioIndex);
+        }
+
+        // Mostrar el usuario actual
+        function mostrarUsuario() {
+            const usuario = usuarios[usuarioIndex];
+            if (usuario) {
+                document.getElementById("usuarioNombre").textContent = usuario.nombre;
+                document.getElementById("ruta").textContent = usuario.ruta;
+                document.getElementById("direccion").textContent = usuario.direccion;
+
+                const lecturaExistente = lecturas.find(l => l.nombre === usuario.nombre);
+                document.getElementById("lecturaAnterior").textContent = lecturaExistente ? lecturaExistente.lectura : "No disponible";
+
+                document.getElementById("contador").disabled = usuario.bloqueado;
+            }
+        }
+
+        // Mostrar la lista de usuarios
+        function mostrarListaUsuarios() {
+            const userListContainer = document.getElementById("userListContainer");
+            userListContainer.innerHTML = "";
+
+            usuarios.forEach(usuario => {
+                const lecturaExistente = lecturas.find(l => l.nombre === usuario.nombre);
+                const lecturaAnterior = lecturaExistente ? lecturaExistente.lectura : "No disponible";
+                const userItem = document.createElement("div");
+                userItem.className = "user-item";
+                userItem.innerHTML = `
+                    <span><strong>Nombre:</strong> ${usuario.nombre}</span><br>
+                    <span><strong>Ruta:</strong> ${usuario.ruta}</span><br>
+                    <span><strong>Dirección:</strong> ${usuario.direccion}</span><br>
+                    <span class="lectura-anterior"><strong>Lectura Contador:</strong> ${lecturaAnterior}</span><br>
+                    ${usuario.bloqueado ? '<span class="bloqueado">Contador Registrado</span>' : ''}<br><br>
+                `;
+                userListContainer.appendChild(userItem);
+            });
+        }
+
+        // Guardar la lectura del contador
+        function guardarContador() {
+            const usuario = usuarios[usuarioIndex];
+            const nuevaLectura = parseFloat(document.getElementById("contador").value);
+
+            if (!nuevaLectura) {
+                alert("Por favor, ingrese una lectura válida.");
+                return;
+            }
+
+            const horaLectura = new Date().toLocaleString();
+            let lecturaExistente = lecturas.find(l => l.nombre === usuario.nombre);
+
+            if (lecturaExistente) {
+                lecturaExistente.lecturaAnterior = lecturaExistente.lectura;
+                lecturaExistente.lectura = nuevaLectura;
+                lecturaExistente.horaLectura = horaLectura;
+            } else {
+                lecturas.push({
+                    nombre: usuario.nombre,
+                    ruta: usuario.ruta,
+                    direccion: usuario.direccion,
+                    lecturaAnterior: null,
+                    lectura: nuevaLectura,
+                    horaLectura: horaLectura
+                });
+            }
+
+            usuario.bloqueado = true;
+
+            guardarLecturas();
+            guardarUsuarios();
+
+            document.getElementById("mensajeGuardado").style.display = "block";
+            document.getElementById("contador").value = "";
+
+            mostrarUsuario();
+            mostrarListaUsuarios();
+
+            siguienteUsuario();
+        }
+
+        // Navegar al siguiente usuario
+        function siguienteUsuario() {
+            if (usuarioIndex < usuarios.length - 1) {
+                usuarioIndex++;
+                guardarUsuarioIndex();
+                mostrarUsuario();
+            }
+        }
+
+        // Navegar al usuario anterior
+        function atrasUsuario() {
+            if (usuarioIndex > 0) {
+                usuarioIndex--;
+                guardarUsuarioIndex();
+                mostrarUsuario();
+            }
+        }
+
+        // Reiniciar la lectura
+        function nuevaLectura() {
+            if (confirm("¿Está seguro de hacer una nueva lectura?")) {
+                usuarioIndex = 0;
+
+                // Desbloquear todos los usuarios
+                usuarios.forEach(usuario => {
+                    usuario.bloqueado = false;
+                });
+
+                // Guardar los cambios en el localStorage
+                guardarUsuarios();
+
+                alert("Nueva lectura iniciada.");
+                mostrarUsuario();
+                mostrarListaUsuarios();
+            }
+        }
+
+        // Cargar usuarios desde un archivo Excel
+        function cargarExcel() {
+            const clave = document.getElementById("claveAcceso").value;
+            const archivo = document.getElementById("excelFile").files[0];
+
+            if (clave !== "Network15") {
+                alert("Clave incorrecta.");
+                return;
+            }
+
+            if (!archivo) {
+                alert("Por favor, seleccione un archivo Excel.");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function (e) {
+                const data = e.target.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
+                const usuariosDesdeExcel = XLSX.utils.sheet_to_json(worksheet);
+
+                usuarios = [];
+                lecturas = [];
+
+                usuariosDesdeExcel.forEach(usuarioExcel => {
+                    if (usuarioExcel.Nombre && usuarioExcel.Ruta && usuarioExcel.Dirección) {
+                        usuarios.push({
+                            nombre: usuarioExcel.Nombre,
+                            ruta: usuarioExcel.Ruta,
+                            direccion: usuarioExcel.Dirección,
+                            bloqueado: false
+                        });
+
+                        lecturas.push({
+                            nombre: usuarioExcel.Nombre,
+                            ruta: usuarioExcel.Ruta,
+                            direccion: usuarioExcel.Dirección,
+                            lectura: usuarioExcel.Lectura,
+                            horaLectura: new Date().toLocaleString()
+                        });
+                    }
+                });
+
+                guardarUsuarios();
+                guardarLecturas();
+
+                mostrarListaUsuarios();
+                alert("Usuarios y lecturas cargados correctamente.");
+            };
+            reader.readAsBinaryString(archivo);
+        }
+
+        // Descargar lecturas en formato Excel
+        function descargarExcel() {
+            const ws = XLSX.utils.json_to_sheet(lecturas.map(lectura => ({
+                "Nombre": lectura.nombre,
+                "Lectura Anterior": lectura.lecturaAnterior,
+                "Lectura Actual": lectura.lectura,
+                "Ruta": lectura.ruta,
+                "Dirección": lectura.direccion,
+                "Fecha y Hora": lectura.horaLectura
+            })));
+            const wb = XLSX.utils.book_new();
+            XLSX.utils.book_append_sheet(wb, ws, "Lecturas");
+            XLSX.writeFile(wb, `Lecturas_${sectorActual}.xlsx`);
+        }
+    </script>
+<!-- Derechos de autor con animación -->
+<footer style="text-align: center; margin-top: 30px; padding: 20px; background-color: #4CAF50; color: white; position: relative; overflow: hidden;">
+    <p id="derechos" style="font-size: 18px; font-weight: bold; margin: 0; animation: moverTexto 10s linear infinite;">
+        Propiedad de Alcaldía Municipal de Ubaque - Realizado por el Área de Sistemas
+    </p>
+    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, transparent, white, transparent); animation: brillo 3s linear infinite;"></div>
+</footer>
+
+<style>
+    /* Animación para mover el texto */
+    @keyframes moverTexto {
+        0% {
+            transform: translateX(100%);
+        }
+        100% {
+            transform: translateX(-100%);
+        }
+    }
+
+    /* Animación para el efecto de brillo */
+    @keyframes brillo {
+        0% {
+            transform: translateX(-100%);
+        }
+        100% {
+            transform: translateX(100%);
+        }
+    }
+</style>
+
+<script>
+    // Opcional: Cambiar el texto dinámicamente cada 5 segundos
+    const textos = [
+        "Propiedad de Alcaldía Municipal de Ubaque - Realizado por el Área de Sistemas",
+        "Innovando para un mejor servicio - Área de Sistemas",
+        "Tecnología al servicio de la comunidad - Alcaldía de Ubaque"
+    ];
+
+    let indice = 0;
+    const elementoDerechos = document.getElementById("derechos");
+
+    function cambiarTexto() {
+        elementoDerechos.textContent = textos[indice];
+        indice = (indice + 1) % textos.length;
+    }
+
+    setInterval(cambiarTexto, 10000); // Cambia el texto cada 5 segundos
+</script>
+</body>
+</html>
