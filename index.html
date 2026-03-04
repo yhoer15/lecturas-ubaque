@@ -1,462 +1,919 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>OFICINA SERVICIOS PUBLICOS - ALCALDIA MUNICIPAL UBAQUE</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f9;
-            color: #333;
-        }
-
-        h1 {
-            text-align: center;
-            background-color: #4CAF50;
-            color: white;
-            padding: 15px;
-            margin: 0;
-        }
-
-        .container {
-            padding: 20px;
-        }
-
-        .contador-form {
-            background-color: white;
-            padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            margin-bottom: 20px;
-        }
-
-        .button {
-            width: 100%;
-            padding: 12px;
-            background-color: #4CAF50;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-            margin-top: 10px;
-        }
-
-        .button:hover {
-            background-color: #45a049;
-        }
-
-        .user-list {
-            margin-top: 20px;
-            background-color: #fff;
-            padding: 15px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        .user-item {
-            padding: 10px;
-            border-bottom: 1px solid #ddd;
-        }
-
-        .user-item:last-child {
-            border-bottom: none;
-        }
-
-        .user-item span {
-            display: inline-block;
-            margin-bottom: 5px;
-        }
-
-        .user-item .lectura-anterior {
-            font-weight: bold;
-        }
-
-        .user-item .bloqueado {
-            color: red;
-        }
-
-        #mensajeGuardado {
-            color: green;
-            font-weight: bold;
-            display: none;
-            text-align: center;
-        }
-
-        label[for="lecturaAnterior"] {
-            font-weight: bold;
-            color: red;
-            font-size: 18px;
-        }
-
-        #lecturaAnterior {
-            font-size: 24px;
-            font-weight: bold;
-            color: black;
-            padding: 20px;
-            border: 2px solid #ddd;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            text-align: center;
-            width: 300px;
-            margin: 10px auto;
-        }
-
-        #contador {
-            font-size: 24px;
-            font-weight: bold;
-            color: black;
-            padding: 20px;
-            border: 2px solid #ddd;
-            background-color: #f9f9f9;
-            border-radius: 8px;
-            text-align: center;
-            width: 300px;
-            margin: 10px auto;
-        }
-    </style>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
-</head>
-<body>
-    <h1>OFICINA SERVICIOS PUBLICOS ALCALDIA MUNICIPAL DE UBAQUE</h1>
-    <h2 id="nombreSector">SECTOR CARTEL DEL GUARAPO</h2>
-    <div class="container">
-        <!-- Selección de sector -->
-        <div class="contador-form">
-            <label for="sector">Sector:</label>
-            <select id="sector" class="button" onchange="cambiarSector()">
-                <option value="CASCO_URBANO">CASCO URBANO</option>
-                <option value="CARTEL_DEL_GUARAPO">CARTEL DEL GUARAPO</option>
-                <option value="FISTEGA">FISTEGA</option>
-                <option value="CARTAGENITA">CARTAGENITA</option>
-                <option value="CAQUEZA">CAQUEZA</option>
-                <option value="CACIQUE">CACIQUE</option>
-                <option value="URBANIZACION EL PORTAL">URBANIZACION EL PORTAL</option>
-                <option value="URBANIZACION LOS SAUCES">URBANIZACION LOS SAUCES</option>
-                <option value=" LA LAGUNA">LA LAGUNA</option>
-                
-                <!-- Agrega más sectores si es necesario -->
-            </select><br><br>
-            <label>Nombre del Usuario: </label>
-            <span id="usuarioNombre"></span><br><br>
-            <label>Ruta: </label>
-            <span id="ruta"></span><br><br>
-            <label>Dirección: </label>
-            <span id="direccion"></span><br><br>
-            <label>Lectura Anterior: </label>
-            <span id="lecturaAnterior">No disponible</span><br><br>
-            <label for="contador">Lectura medidor:</label>
-            <input type="number" id="contador" placeholder="Ingrese la lectura"><br><br>
-            <button class="button" onclick="guardarContador()">Guardar</button>
-            <button class="button" onclick="atrasUsuario()">Atrás</button>
-            <button class="button" onclick="siguienteUsuario()">Adelante</button>
-        </div>
-
-        <!-- Lista de usuarios -->
-        <div class="user-list">
-            <h3>Usuarios Registrados</h3>
-            <div id="userListContainer"></div>
-        </div>
-
-        <!-- Botón para descargar y compartir Excel -->
-        <div style="margin-top: 20px; text-align: center;">
-            <button class="button" onclick="descargarExcel()">Descargar Excel</button><br><br>
-            <button class="button" onclick="nuevaLectura()">Nueva Lectura</button>
-        </div>
-
-        <!-- Botón y campo para cargar archivo Excel y clave de acceso -->
-        <div style="margin-top: 20px; text-align: center;">
-            <input type="file" id="excelFile" class="button" accept=".xlsx, .xls" style="width: auto;">
-            <input type="password" id="claveAcceso" placeholder="Ingrese clave" class="button" style="width: auto;">
-            <button class="button" onclick="cargarExcel()">Cargar Usuarios</button><br><br>
-        </div>
-
-        <!-- Mensaje de lectura guardada -->
-        <div id="mensajeGuardado">Lectura guardada correctamente</div>
-    </div>
-
-    <script>
-        let sectorActual = "CASCO_URBANO"; // Sector por defecto
-        let usuarios = [];
-        let lecturas = [];
-        let usuarioIndex = 0;
-
-        // Función para cambiar de sector
-        function cambiarSector() {
-            sectorActual = document.getElementById("sector").value;
-            localStorage.setItem("sectorActual", sectorActual); // Guardar el sector actual
-            cargarDatosSector();
-            mostrarUsuario();
-            mostrarListaUsuarios();
-            document.getElementById("nombreSector").textContent = `SECTOR ${sectorActual.replace(/_/g, " ")}`;
-        }
-
-        // Cargar datos del sector actual
-        function cargarDatosSector() {
-            usuarios = JSON.parse(localStorage.getItem(`usuarios_${sectorActual}`)) || [];
-            lecturas = JSON.parse(localStorage.getItem(`lecturas_${sectorActual}`)) || [];
-            usuarioIndex = parseInt(localStorage.getItem(`usuarioIndex_${sectorActual}`)) || 0;
-        }
-
-        // Obtener el sector actual al cargar la página
-        window.onload = function () {
-            const sectorGuardado = localStorage.getItem("sectorActual");
-            if (sectorGuardado) {
-                sectorActual = sectorGuardado;
-                document.getElementById("sector").value = sectorActual;
-            }
-            cargarDatosSector();
-            mostrarUsuario();
-            mostrarListaUsuarios();
-            document.getElementById("nombreSector").textContent = `SECTOR ${sectorActual.replace(/_/g, " ")}`;
-        };
-
-        // Funciones para obtener y guardar datos en el localStorage
-        function guardarUsuarios() {
-            localStorage.setItem(`usuarios_${sectorActual}`, JSON.stringify(usuarios));
-        }
-
-        function guardarLecturas() {
-            localStorage.setItem(`lecturas_${sectorActual}`, JSON.stringify(lecturas));
-        }
-
-        function guardarUsuarioIndex() {
-            localStorage.setItem(`usuarioIndex_${sectorActual}`, usuarioIndex);
-        }
-
-        // Mostrar el usuario actual
-        function mostrarUsuario() {
-            const usuario = usuarios[usuarioIndex];
-            if (usuario) {
-                document.getElementById("usuarioNombre").textContent = usuario.nombre;
-                document.getElementById("ruta").textContent = usuario.ruta;
-                document.getElementById("direccion").textContent = usuario.direccion;
-
-                const lecturaExistente = lecturas.find(l => l.nombre === usuario.nombre);
-                document.getElementById("lecturaAnterior").textContent = lecturaExistente ? lecturaExistente.lectura : "No disponible";
-
-                document.getElementById("contador").disabled = usuario.bloqueado;
-            }
-        }
-
-        // Mostrar la lista de usuarios
-        function mostrarListaUsuarios() {
-            const userListContainer = document.getElementById("userListContainer");
-            userListContainer.innerHTML = "";
-
-            usuarios.forEach(usuario => {
-                const lecturaExistente = lecturas.find(l => l.nombre === usuario.nombre);
-                const lecturaAnterior = lecturaExistente ? lecturaExistente.lectura : "No disponible";
-                const userItem = document.createElement("div");
-                userItem.className = "user-item";
-                userItem.innerHTML = `
-                    <span><strong>Nombre:</strong> ${usuario.nombre}</span><br>
-                    <span><strong>Ruta:</strong> ${usuario.ruta}</span><br>
-                    <span><strong>Dirección:</strong> ${usuario.direccion}</span><br>
-                    <span class="lectura-anterior"><strong>Lectura Contador:</strong> ${lecturaAnterior}</span><br>
-                    ${usuario.bloqueado ? '<span class="bloqueado">Contador Registrado</span>' : ''}<br><br>
-                `;
-                userListContainer.appendChild(userItem);
-            });
-        }
-
-        // Guardar la lectura del contador
-        function guardarContador() {
-            const usuario = usuarios[usuarioIndex];
-            const nuevaLectura = parseFloat(document.getElementById("contador").value);
-
-            if (!nuevaLectura) {
-                alert("Por favor, ingrese una lectura válida.");
-                return;
-            }
-
-            const horaLectura = new Date().toLocaleString();
-            let lecturaExistente = lecturas.find(l => l.nombre === usuario.nombre);
-
-            if (lecturaExistente) {
-                lecturaExistente.lecturaAnterior = lecturaExistente.lectura;
-                lecturaExistente.lectura = nuevaLectura;
-                lecturaExistente.horaLectura = horaLectura;
-            } else {
-                lecturas.push({
-                    nombre: usuario.nombre,
-                    ruta: usuario.ruta,
-                    direccion: usuario.direccion,
-                    lecturaAnterior: null,
-                    lectura: nuevaLectura,
-                    horaLectura: horaLectura
-                });
-            }
-
-            usuario.bloqueado = true;
-
-            guardarLecturas();
-            guardarUsuarios();
-
-            document.getElementById("mensajeGuardado").style.display = "block";
-            document.getElementById("contador").value = "";
-
-            mostrarUsuario();
-            mostrarListaUsuarios();
-
-            siguienteUsuario();
-        }
-
-        // Navegar al siguiente usuario
-        function siguienteUsuario() {
-            if (usuarioIndex < usuarios.length - 1) {
-                usuarioIndex++;
-                guardarUsuarioIndex();
-                mostrarUsuario();
-            }
-        }
-
-        // Navegar al usuario anterior
-        function atrasUsuario() {
-            if (usuarioIndex > 0) {
-                usuarioIndex--;
-                guardarUsuarioIndex();
-                mostrarUsuario();
-            }
-        }
-
-        // Reiniciar la lectura
-        function nuevaLectura() {
-            if (confirm("¿Está seguro de hacer una nueva lectura?")) {
-                usuarioIndex = 0;
-
-                // Desbloquear todos los usuarios
-                usuarios.forEach(usuario => {
-                    usuario.bloqueado = false;
-                });
-
-                // Guardar los cambios en el localStorage
-                guardarUsuarios();
-
-                alert("Nueva lectura iniciada.");
-                mostrarUsuario();
-                mostrarListaUsuarios();
-            }
-        }
-
-        // Cargar usuarios desde un archivo Excel
-        function cargarExcel() {
-            const clave = document.getElementById("claveAcceso").value;
-            const archivo = document.getElementById("excelFile").files[0];
-
-            if (clave !== "Network15") {
-                alert("Clave incorrecta.");
-                return;
-            }
-
-            if (!archivo) {
-                alert("Por favor, seleccione un archivo Excel.");
-                return;
-            }
-
-            const reader = new FileReader();
-            reader.onload = function (e) {
-                const data = e.target.result;
-                const workbook = XLSX.read(data, { type: 'binary' });
-                const worksheet = workbook.Sheets[workbook.SheetNames[0]];
-                const usuariosDesdeExcel = XLSX.utils.sheet_to_json(worksheet);
-
-                usuarios = [];
-                lecturas = [];
-
-                usuariosDesdeExcel.forEach(usuarioExcel => {
-                    if (usuarioExcel.Nombre && usuarioExcel.Ruta && usuarioExcel.Dirección) {
-                        usuarios.push({
-                            nombre: usuarioExcel.Nombre,
-                            ruta: usuarioExcel.Ruta,
-                            direccion: usuarioExcel.Dirección,
-                            bloqueado: false
-                        });
-
-                        lecturas.push({
-                            nombre: usuarioExcel.Nombre,
-                            ruta: usuarioExcel.Ruta,
-                            direccion: usuarioExcel.Dirección,
-                            lectura: usuarioExcel.Lectura,
-                            horaLectura: new Date().toLocaleString()
-                        });
-                    }
-                });
-
-                guardarUsuarios();
-                guardarLecturas();
-
-                mostrarListaUsuarios();
-                alert("Usuarios y lecturas cargados correctamente.");
-            };
-            reader.readAsBinaryString(archivo);
-        }
-
-        // Descargar lecturas en formato Excel
-        function descargarExcel() {
-            const ws = XLSX.utils.json_to_sheet(lecturas.map(lectura => ({
-                "Nombre": lectura.nombre,
-                "Lectura Anterior": lectura.lecturaAnterior,
-                "Lectura Actual": lectura.lectura,
-                "Ruta": lectura.ruta,
-                "Dirección": lectura.direccion,
-                "Fecha y Hora": lectura.horaLectura
-            })));
-            const wb = XLSX.utils.book_new();
-            XLSX.utils.book_append_sheet(wb, ws, "Lecturas");
-            XLSX.writeFile(wb, `Lecturas_${sectorActual}.xlsx`);
-        }
-    </script>
-<!-- Derechos de autor con animación -->
-<footer style="text-align: center; margin-top: 30px; padding: 20px; background-color: #4CAF50; color: white; position: relative; overflow: hidden;">
-    <p id="derechos" style="font-size: 18px; font-weight: bold; margin: 0; animation: moverTexto 10s linear infinite;">
-        Propiedad de Alcaldía Municipal de Ubaque - Realizado por el Área de Sistemas
-    </p>
-    <div style="position: absolute; bottom: 0; left: 0; width: 100%; height: 5px; background: linear-gradient(90deg, transparent, white, transparent); animation: brillo 3s linear infinite;"></div>
-</footer>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="theme-color" content="#0a4f2e">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>Lecturas — Ubaque</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;600;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.17.1/xlsx.full.min.js"></script>
 
 <style>
-    /* Animación para mover el texto */
-    @keyframes moverTexto {
-        0% {
-            transform: translateX(100%);
-        }
-        100% {
-            transform: translateX(-100%);
-        }
-    }
+:root {
+  --verde: #0a4f2e;
+  --verde-med: #1a7a4a;
+  --verde-claro: #2ecc71;
+  --agua: #00b4d8;
+  --agua-claro: #90e0ef;
+  --bg: #050f08;
+  --bg2: #0d1f14;
+  --bg3: #152b1d;
+  --card: #0f2318;
+  --card2: #162d1f;
+  --text: #e8f5ec;
+  --text2: #8db89a;
+  --accent: #39ff6a;
+  --warn: #ff6b35;
+  --border: rgba(46,204,113,0.18);
+}
 
-    /* Animación para el efecto de brillo */
-    @keyframes brillo {
-        0% {
-            transform: translateX(-100%);
-        }
-        100% {
-            transform: translateX(100%);
-        }
-    }
+* { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+
+body {
+  font-family: 'Syne', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ===== SPLASH ===== */
+#splash {
+  position: fixed; inset: 0; z-index: 9999;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  gap: 20px;
+  transition: opacity 0.6s ease;
+}
+#splash.hide { opacity: 0; pointer-events: none; }
+.splash-logo {
+  width: 90px; height: 90px;
+  border-radius: 24px;
+  background: linear-gradient(135deg, var(--verde-med), var(--agua));
+  display: flex; align-items: center; justify-content: center;
+  font-size: 44px;
+  box-shadow: 0 0 60px rgba(46,204,113,0.4);
+  animation: pulse 2s ease infinite;
+}
+@keyframes pulse { 0%,100%{box-shadow:0 0 40px rgba(46,204,113,0.3)} 50%{box-shadow:0 0 80px rgba(46,204,113,0.7)} }
+.splash-title { font-size: 26px; font-weight: 800; color: var(--accent); letter-spacing: 2px; }
+.splash-sub { font-size: 12px; color: var(--text2); letter-spacing: 4px; text-transform: uppercase; }
+.splash-bar { width: 200px; height: 3px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin-top: 20px; }
+.splash-progress { height: 100%; width: 0%; background: linear-gradient(90deg, var(--verde-claro), var(--agua)); border-radius: 2px; animation: load 2s ease forwards; }
+@keyframes load { to { width: 100%; } }
+
+/* ===== NAVEGACIÓN ===== */
+#nav {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  background: rgba(13,31,20,0.97);
+  border-top: 1px solid var(--border);
+  display: flex;
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  padding-bottom: env(safe-area-inset-bottom);
+}
+.nav-btn {
+  flex: 1; padding: 14px 8px 10px;
+  background: none; border: none; cursor: pointer;
+  display: flex; flex-direction: column; align-items: center; gap: 4px;
+  color: var(--text2); font-family: 'Syne', sans-serif;
+  font-size: 10px; font-weight: 600; letter-spacing: 0.5px;
+  text-transform: uppercase; transition: color 0.2s;
+}
+.nav-btn.active { color: var(--accent); }
+.nav-btn .icon { font-size: 22px; }
+
+/* ===== HEADER ===== */
+.header {
+  background: linear-gradient(180deg, var(--verde) 0%, var(--bg2) 100%);
+  padding: 52px 20px 20px;
+  border-bottom: 1px solid var(--border);
+  position: relative; overflow: hidden;
+}
+.header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(ellipse at 70% 0%, rgba(0,180,216,0.15) 0%, transparent 70%);
+}
+.header-top { display: flex; justify-content: space-between; align-items: flex-start; position: relative; }
+.header-badge {
+  font-size: 10px; font-weight: 700; letter-spacing: 3px;
+  color: var(--agua-claro); text-transform: uppercase;
+  background: rgba(0,180,216,0.15); padding: 4px 10px; border-radius: 20px;
+  border: 1px solid rgba(0,180,216,0.3);
+}
+.header h1 { font-size: 22px; font-weight: 800; margin-top: 6px; position: relative; }
+.header h1 span { color: var(--accent); }
+
+/* ===== PAGES ===== */
+.page { display: none; padding: 20px 16px 100px; }
+.page.active { display: block; }
+
+/* ===== CARDS ===== */
+.card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 18px;
+  margin-bottom: 14px;
+  position: relative; overflow: hidden;
+}
+.card::before {
+  content: '';
+  position: absolute; top: 0; left: 0; right: 0; height: 2px;
+  background: linear-gradient(90deg, var(--verde-claro), var(--agua), transparent);
+}
+.card-title {
+  font-size: 11px; font-weight: 700; letter-spacing: 3px;
+  text-transform: uppercase; color: var(--text2); margin-bottom: 14px;
+}
+
+/* ===== SELECTOR SECTOR ===== */
+.sector-select {
+  width: 100%; padding: 14px 16px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text);
+  font-family: 'Syne', sans-serif; font-size: 15px; font-weight: 600;
+  appearance: none; -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%232ecc71' stroke-width='2' stroke-linecap='round'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: right 16px center;
+  cursor: pointer;
+}
+
+/* ===== USUARIO ACTUAL ===== */
+.user-nav {
+  display: flex; align-items: center; gap: 10px; margin-bottom: 16px;
+}
+.user-nav-btn {
+  width: 40px; height: 40px; border-radius: 10px;
+  background: var(--bg3); border: 1px solid var(--border);
+  color: var(--text); font-size: 18px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.2s;
+}
+.user-nav-btn:hover { background: var(--verde); }
+.user-counter {
+  flex: 1; text-align: center;
+  font-family: 'Space Mono', monospace;
+  font-size: 13px; color: var(--text2);
+}
+.user-counter strong { color: var(--accent); font-size: 16px; }
+
+.user-name {
+  font-size: 20px; font-weight: 800; margin-bottom: 4px;
+}
+.user-meta { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 8px; }
+.tag {
+  font-size: 11px; padding: 4px 10px; border-radius: 20px;
+  background: var(--bg3); color: var(--text2); border: 1px solid var(--border);
+  font-family: 'Space Mono', monospace;
+}
+.tag.ruta { color: var(--agua-claro); border-color: rgba(0,180,216,0.3); }
+
+.lectura-anterior-box {
+  background: var(--bg3); border-radius: 12px; padding: 14px;
+  margin: 14px 0; text-align: center;
+  border: 1px solid var(--border);
+}
+.lectura-label { font-size: 10px; letter-spacing: 2px; color: var(--text2); text-transform: uppercase; }
+.lectura-valor {
+  font-family: 'Space Mono', monospace;
+  font-size: 32px; font-weight: 700; color: var(--agua-claro);
+  margin-top: 4px;
+}
+
+.input-lectura {
+  width: 100%; padding: 18px; text-align: center;
+  font-family: 'Space Mono', monospace; font-size: 28px; font-weight: 700;
+  background: var(--bg3); border: 2px solid var(--border);
+  border-radius: 12px; color: var(--accent);
+  transition: border-color 0.2s;
+  outline: none;
+}
+.input-lectura:focus { border-color: var(--verde-claro); }
+.input-lectura:disabled { opacity: 0.4; }
+
+.gps-status {
+  display: flex; align-items: center; gap: 8px;
+  padding: 10px 14px; border-radius: 10px; margin: 10px 0;
+  font-size: 12px; font-family: 'Space Mono', monospace;
+}
+.gps-status.ok { background: rgba(46,204,113,0.1); color: var(--verde-claro); border: 1px solid rgba(46,204,113,0.2); }
+.gps-status.wait { background: rgba(255,107,53,0.1); color: var(--warn); border: 1px solid rgba(255,107,53,0.2); }
+.gps-dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; animation: blink 1s ease infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+
+.btn-guardar {
+  width: 100%; padding: 18px;
+  background: linear-gradient(135deg, var(--verde-med), var(--verde-claro));
+  border: none; border-radius: 14px;
+  color: #fff; font-family: 'Syne', sans-serif;
+  font-size: 16px; font-weight: 800; letter-spacing: 1px;
+  cursor: pointer; margin-top: 14px;
+  transition: transform 0.15s, box-shadow 0.15s;
+  box-shadow: 0 4px 20px rgba(46,204,113,0.3);
+}
+.btn-guardar:active { transform: scale(0.97); }
+.btn-guardar:disabled { opacity: 0.4; cursor: not-allowed; }
+
+.bloqueado-badge {
+  display: flex; align-items: center; gap: 8px; justify-content: center;
+  padding: 12px; border-radius: 10px;
+  background: rgba(46,204,113,0.1); border: 1px solid rgba(46,204,113,0.2);
+  color: var(--verde-claro); font-size: 13px; font-weight: 700;
+  margin-top: 10px;
+}
+
+/* ===== LISTA USUARIOS ===== */
+.user-list-item {
+  background: var(--card2); border: 1px solid var(--border);
+  border-radius: 12px; padding: 14px; margin-bottom: 10px;
+  cursor: pointer; transition: border-color 0.2s, background 0.2s;
+  position: relative;
+}
+.user-list-item:hover { border-color: var(--verde-claro); background: var(--card); }
+.user-list-item.registrado { border-left: 3px solid var(--verde-claro); }
+.user-list-item .ul-name { font-weight: 700; font-size: 15px; }
+.user-list-item .ul-meta { font-size: 11px; color: var(--text2); margin-top: 4px; font-family: 'Space Mono', monospace; }
+.ul-lectura {
+  position: absolute; right: 14px; top: 50%; transform: translateY(-50%);
+  font-family: 'Space Mono', monospace; font-size: 18px; font-weight: 700;
+  color: var(--agua-claro);
+}
+.check-icon { color: var(--verde-claro); font-size: 14px; }
+
+/* ===== MAPA ===== */
+#map { height: 380px; border-radius: 14px; border: 1px solid var(--border); overflow: hidden; }
+.map-legend {
+  display: flex; gap: 16px; flex-wrap: wrap;
+  padding: 12px; background: var(--card); border-radius: 10px;
+  margin-top: 10px; border: 1px solid var(--border);
+}
+.legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text2); }
+.legend-dot { width: 12px; height: 12px; border-radius: 50%; }
+
+/* ===== STATS ===== */
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 14px; }
+.stat-card {
+  background: var(--card); border: 1px solid var(--border);
+  border-radius: 14px; padding: 16px; text-align: center;
+  position: relative; overflow: hidden;
+}
+.stat-card::after {
+  content: attr(data-icon);
+  position: absolute; right: 10px; bottom: 6px;
+  font-size: 32px; opacity: 0.1;
+}
+.stat-num { font-family: 'Space Mono', monospace; font-size: 30px; font-weight: 700; color: var(--accent); }
+.stat-label { font-size: 10px; letter-spacing: 2px; color: var(--text2); text-transform: uppercase; margin-top: 4px; }
+
+/* ===== ADMIN / CARGAR ===== */
+.input-clave {
+  width: 100%; padding: 14px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text);
+  font-family: 'Space Mono', monospace; font-size: 16px;
+  outline: none; transition: border-color 0.2s;
+  letter-spacing: 4px;
+}
+.input-clave:focus { border-color: var(--verde-claro); }
+
+.file-drop {
+  border: 2px dashed var(--border); border-radius: 14px;
+  padding: 30px; text-align: center; cursor: pointer;
+  transition: border-color 0.2s, background 0.2s;
+  margin: 12px 0;
+}
+.file-drop:hover { border-color: var(--verde-claro); background: rgba(46,204,113,0.05); }
+.file-drop-icon { font-size: 36px; margin-bottom: 8px; }
+.file-drop-text { font-size: 14px; color: var(--text2); }
+.file-drop input { display: none; }
+
+.btn-secondary {
+  width: 100%; padding: 14px;
+  background: var(--bg3); border: 1px solid var(--border);
+  border-radius: 12px; color: var(--text);
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-top: 10px; letter-spacing: 1px;
+  transition: border-color 0.2s;
+}
+.btn-secondary:hover { border-color: var(--verde-claro); }
+
+.btn-danger {
+  width: 100%; padding: 14px;
+  background: rgba(255,107,53,0.1); border: 1px solid rgba(255,107,53,0.3);
+  border-radius: 12px; color: var(--warn);
+  font-family: 'Syne', sans-serif; font-size: 14px; font-weight: 700;
+  cursor: pointer; margin-top: 10px; letter-spacing: 1px;
+}
+
+/* ===== TOAST ===== */
+#toast {
+  position: fixed; bottom: 90px; left: 50%; transform: translateX(-50%) translateY(20px);
+  background: var(--verde-claro); color: var(--bg); padding: 12px 24px;
+  border-radius: 30px; font-weight: 700; font-size: 14px;
+  opacity: 0; transition: all 0.3s; z-index: 999; white-space: nowrap;
+  box-shadow: 0 4px 20px rgba(46,204,113,0.4);
+}
+#toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+
+/* ===== PROGRESS BAR ===== */
+.progress-bar { height: 4px; background: var(--bg3); border-radius: 2px; overflow: hidden; margin: 12px 0; }
+.progress-fill { height: 100%; background: linear-gradient(90deg, var(--verde-claro), var(--agua)); border-radius: 2px; transition: width 0.5s ease; }
+
+/* ===== POPUP MAPA ===== */
+.leaflet-popup-content-wrapper {
+  background: var(--card) !important;
+  border: 1px solid var(--border) !important;
+  border-radius: 12px !important;
+  color: var(--text) !important;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.5) !important;
+}
+.leaflet-popup-tip { background: var(--card) !important; }
+.popup-name { font-weight: 800; font-size: 14px; margin-bottom: 6px; }
+.popup-val { font-family: 'Space Mono', monospace; font-size: 20px; color: var(--agua-claro); }
+.popup-meta { font-size: 11px; color: #8db89a; margin-top: 4px; }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: var(--bg); }
+::-webkit-scrollbar-thumb { background: var(--verde); border-radius: 2px; }
+
+.divider { height: 1px; background: var(--border); margin: 16px 0; }
 </style>
+</head>
+<body>
+
+<!-- SPLASH -->
+<div id="splash">
+  <div class="splash-logo">💧</div>
+  <div class="splash-title">UBAQUE</div>
+  <div class="splash-sub">Servicios Públicos · Lecturas</div>
+  <div class="splash-bar"><div class="splash-progress"></div></div>
+</div>
+
+<!-- TOAST -->
+<div id="toast"></div>
+
+<!-- HEADER -->
+<div class="header">
+  <div class="header-top">
+    <div>
+      <div class="header-badge">Alcaldía Municipal</div>
+      <h1>Lecturas <span>GPS</span></h1>
+    </div>
+    <div id="headerSector" style="font-size:11px;color:var(--text2);text-align:right;font-family:'Space Mono',monospace;padding-top:4px;"></div>
+  </div>
+  <div class="progress-bar" style="margin-top:16px;margin-bottom:0">
+    <div class="progress-fill" id="globalProgress" style="width:0%"></div>
+  </div>
+  <div style="display:flex;justify-content:space-between;font-size:10px;color:var(--text2);margin-top:4px;font-family:'Space Mono',monospace;">
+    <span id="progressLabel">0 de 0 registrados</span>
+    <span id="progressPct">0%</span>
+  </div>
+</div>
+
+<!-- NAVEGACIÓN -->
+<nav id="nav">
+  <button class="nav-btn active" onclick="goPage('lectura')" id="nav-lectura">
+    <span class="icon">📟</span>Lectura
+  </button>
+  <button class="nav-btn" onclick="goPage('lista')" id="nav-lista">
+    <span class="icon">📋</span>Lista
+  </button>
+  <button class="nav-btn" onclick="goPage('mapa')" id="nav-mapa">
+    <span class="icon">🗺️</span>Mapa
+  </button>
+  <button class="nav-btn" onclick="goPage('admin')" id="nav-admin">
+    <span class="icon">⚙️</span>Admin
+  </button>
+</nav>
+
+<!-- ===== PAGE: LECTURA ===== -->
+<div class="page active" id="page-lectura">
+
+  <div class="card">
+    <div class="card-title">Sector activo</div>
+    <select id="sector" class="sector-select" onchange="cambiarSector()">
+      <option value="CASCO_URBANO">CASCO URBANO</option>
+      <option value="CARTEL_DEL_GUARAPO">CARTEL DEL GUARAPO</option>
+      <option value="FISTEGA">FISTEGA</option>
+      <option value="CARTAGENITA">CARTAGENITA</option>
+      <option value="CAQUEZA">CAQUEZA</option>
+      <option value="CACIQUE">CACIQUE</option>
+      <option value="URBANIZACION_EL_PORTAL">URBANIZACIÓN EL PORTAL</option>
+      <option value="URBANIZACION_LOS_SAUCES">URBANIZACIÓN LOS SAUCES</option>
+      <option value="LA_LAGUNA">LA LAGUNA</option>
+    </select>
+  </div>
+
+  <div class="card" id="cardUsuario">
+    <div class="user-nav">
+      <button class="user-nav-btn" onclick="atrasUsuario()">◀</button>
+      <div class="user-counter">Usuario <strong id="idxDisplay">0</strong> / <span id="totalDisplay">0</span></div>
+      <button class="user-nav-btn" onclick="siguienteUsuario()">▶</button>
+    </div>
+    <div class="divider"></div>
+    <div class="user-name" id="usuarioNombre">— Sin usuarios cargados —</div>
+    <div class="user-meta">
+      <span class="tag ruta" id="rutaTag">Ruta —</span>
+      <span class="tag" id="dirTag">📍 —</span>
+    </div>
+  </div>
+
+  <div class="card">
+    <div class="lectura-anterior-box">
+      <div class="lectura-label">Lectura anterior</div>
+      <div class="lectura-valor" id="lecturaAnterior">—</div>
+    </div>
+
+    <div class="gps-status wait" id="gpsStatus">
+      <div class="gps-dot"></div>
+      <span id="gpsText">GPS: esperando ubicación...</span>
+    </div>
+
+    <input type="number" id="contador" class="input-lectura" placeholder="0000" inputmode="numeric">
+
+    <button class="btn-guardar" onclick="guardarContador()" id="btnGuardar">
+      💾 GUARDAR LECTURA
+    </button>
+
+    <div id="bloqueadoBadge" class="bloqueado-badge" style="display:none">
+      ✅ Lectura registrada
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE: LISTA ===== -->
+<div class="page" id="page-lista">
+  <div class="stats-grid">
+    <div class="stat-card" data-icon="👤">
+      <div class="stat-num" id="statTotal">0</div>
+      <div class="stat-label">Total usuarios</div>
+    </div>
+    <div class="stat-card" data-icon="✅">
+      <div class="stat-num" id="statReg">0</div>
+      <div class="stat-label">Registrados</div>
+    </div>
+  </div>
+  <div id="userListContainer"></div>
+</div>
+
+<!-- ===== PAGE: MAPA ===== -->
+<div class="page" id="page-mapa">
+  <div class="card" style="padding-bottom:14px">
+    <div class="card-title">Georeferenciación — <span id="mapSectorLabel">—</span></div>
+    <div id="map"></div>
+    <div class="map-legend">
+      <div class="legend-item"><div class="legend-dot" style="background:#2ecc71"></div>Registrado</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#ff6b35"></div>Pendiente</div>
+      <div class="legend-item"><div class="legend-dot" style="background:#00b4d8"></div>Mi posición</div>
+    </div>
+  </div>
+  <div class="card">
+    <div class="card-title">Resumen de ruta</div>
+    <div id="mapaResumen" style="font-size:13px;color:var(--text2);font-family:'Space Mono',monospace;">
+      No hay lecturas georeferenciadas aún.
+    </div>
+  </div>
+</div>
+
+<!-- ===== PAGE: ADMIN ===== -->
+<div class="page" id="page-admin">
+
+  <div class="card">
+    <div class="card-title">🔐 Acceso administrador</div>
+    <input type="password" id="claveAcceso" class="input-clave" placeholder="••••••••">
+  </div>
+
+  <div class="card">
+    <div class="card-title">📥 Cargar usuarios (Excel)</div>
+    <div class="file-drop" onclick="document.getElementById('excelFile').click()">
+      <div class="file-drop-icon">📊</div>
+      <div class="file-drop-text">Toca para seleccionar archivo .xlsx<br><small style="font-size:10px;opacity:0.6">Columnas: Nombre · Ruta · Dirección · Lectura</small></div>
+      <input type="file" id="excelFile" accept=".xlsx,.xls" onchange="archivoSeleccionado(this)">
+    </div>
+    <div id="fileSelName" style="font-size:12px;color:var(--verde-claro);text-align:center;min-height:16px;font-family:'Space Mono',monospace;"></div>
+    <button class="btn-guardar" onclick="cargarExcel()">⬆️ CARGAR USUARIOS</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">📤 Exportar datos</div>
+    <button class="btn-secondary" onclick="descargarExcel()">📊 Descargar Excel con GPS</button>
+    <button class="btn-secondary" onclick="exportarKML()">🗺️ Descargar KML (Google Maps)</button>
+  </div>
+
+  <div class="card">
+    <div class="card-title">🔄 Gestión de ciclo</div>
+    <button class="btn-secondary" onclick="nuevaLectura()">🔄 Iniciar nuevo ciclo de lecturas</button>
+    <button class="btn-danger" onclick="borrarTodo()">🗑️ Borrar todos los datos del sector</button>
+  </div>
+
+  <div style="text-align:center;padding:20px;font-size:11px;color:var(--text2);font-family:'Space Mono',monospace;line-height:1.8;">
+    Alcaldía Municipal de Ubaque<br>
+    Área de Sistemas · v2.0 GPS
+  </div>
+</div>
 
 <script>
-    // Opcional: Cambiar el texto dinámicamente cada 5 segundos
-    const textos = [
-        "Propiedad de Alcaldía Municipal de Ubaque - Realizado por el Área de Sistemas",
-        "Innovando para un mejor servicio - Área de Sistemas",
-        "Tecnología al servicio de la comunidad - Alcaldía de Ubaque"
-    ];
+// ============================================================
+//  ESTADO GLOBAL
+// ============================================================
+let sectorActual = "CASCO_URBANO";
+let usuarios = [];
+let lecturas = [];
+let usuarioIndex = 0;
+let gpsCoords = null;
+let map = null;
+let mapInitialized = false;
+let watchId = null;
+let myMarker = null;
+let markers = [];
 
-    let indice = 0;
-    const elementoDerechos = document.getElementById("derechos");
+// ============================================================
+//  SPLASH
+// ============================================================
+window.addEventListener('load', () => {
+  setTimeout(() => {
+    document.getElementById('splash').classList.add('hide');
+    initApp();
+  }, 2400);
+});
 
-    function cambiarTexto() {
-        elementoDerechos.textContent = textos[indice];
-        indice = (indice + 1) % textos.length;
-    }
+function initApp() {
+  const s = localStorage.getItem("sectorActual");
+  if (s) { sectorActual = s; document.getElementById("sector").value = s; }
+  cargarDatosSector();
+  mostrarUsuario();
+  mostrarListaUsuarios();
+  actualizarHeader();
+  iniciarGPS();
+}
 
-    setInterval(cambiarTexto, 10000); // Cambia el texto cada 5 segundos
+// ============================================================
+//  STORAGE
+// ============================================================
+function guardarUsuarios() { localStorage.setItem(`usuarios_${sectorActual}`, JSON.stringify(usuarios)); }
+function guardarLecturas() { localStorage.setItem(`lecturas_${sectorActual}`, JSON.stringify(lecturas)); }
+function guardarUsuarioIndex() { localStorage.setItem(`usuarioIndex_${sectorActual}`, usuarioIndex); }
+
+function cargarDatosSector() {
+  usuarios = JSON.parse(localStorage.getItem(`usuarios_${sectorActual}`)) || [];
+  lecturas = JSON.parse(localStorage.getItem(`lecturas_${sectorActual}`)) || [];
+  usuarioIndex = parseInt(localStorage.getItem(`usuarioIndex_${sectorActual}`)) || 0;
+  if (usuarioIndex >= usuarios.length) usuarioIndex = 0;
+}
+
+// ============================================================
+//  SECTOR
+// ============================================================
+function cambiarSector() {
+  sectorActual = document.getElementById("sector").value;
+  localStorage.setItem("sectorActual", sectorActual);
+  cargarDatosSector();
+  mostrarUsuario();
+  mostrarListaUsuarios();
+  actualizarHeader();
+}
+
+function actualizarHeader() {
+  const label = sectorActual.replace(/_/g, " ");
+  document.getElementById("headerSector").textContent = label;
+  document.getElementById("mapSectorLabel").textContent = label;
+
+  const total = usuarios.length;
+  const reg = lecturas.filter(l => l.lectura !== undefined && l.lectura !== null && l.lectura !== "").length;
+  const pct = total > 0 ? Math.round(reg / total * 100) : 0;
+
+  document.getElementById("globalProgress").style.width = pct + "%";
+  document.getElementById("progressLabel").textContent = `${reg} de ${total} registrados`;
+  document.getElementById("progressPct").textContent = pct + "%";
+  document.getElementById("statTotal").textContent = total;
+  document.getElementById("statReg").textContent = reg;
+}
+
+// ============================================================
+//  GPS
+// ============================================================
+function iniciarGPS() {
+  if (!navigator.geolocation) {
+    setGPSStatus(false, "GPS no disponible en este dispositivo");
+    return;
+  }
+  watchId = navigator.geolocation.watchPosition(
+    pos => {
+      gpsCoords = { lat: pos.coords.latitude, lng: pos.coords.longitude, acc: Math.round(pos.coords.accuracy) };
+      setGPSStatus(true, `GPS: ±${gpsCoords.acc}m · ${gpsCoords.lat.toFixed(5)}, ${gpsCoords.lng.toFixed(5)}`);
+      if (mapInitialized) actualizarMiPosicion();
+    },
+    err => {
+      setGPSStatus(false, "GPS: sin señal — se guardará sin coordenadas");
+    },
+    { enableHighAccuracy: true, maximumAge: 10000, timeout: 15000 }
+  );
+}
+
+function setGPSStatus(ok, text) {
+  const el = document.getElementById("gpsStatus");
+  const tel = document.getElementById("gpsText");
+  el.className = "gps-status " + (ok ? "ok" : "wait");
+  tel.textContent = text;
+}
+
+// ============================================================
+//  MOSTRAR USUARIO
+// ============================================================
+function mostrarUsuario() {
+  const u = usuarios[usuarioIndex];
+  document.getElementById("idxDisplay").textContent = u ? usuarioIndex + 1 : 0;
+  document.getElementById("totalDisplay").textContent = usuarios.length;
+
+  if (!u) {
+    document.getElementById("usuarioNombre").textContent = "— Sin usuarios cargados —";
+    document.getElementById("rutaTag").textContent = "Ruta —";
+    document.getElementById("dirTag").textContent = "📍 —";
+    document.getElementById("lecturaAnterior").textContent = "—";
+    document.getElementById("contador").disabled = false;
+    document.getElementById("btnGuardar").disabled = false;
+    document.getElementById("bloqueadoBadge").style.display = "none";
+    return;
+  }
+
+  document.getElementById("usuarioNombre").textContent = u.nombre;
+  document.getElementById("rutaTag").textContent = "Ruta " + u.ruta;
+  document.getElementById("dirTag").textContent = "📍 " + u.direccion;
+
+  const le = lecturas.find(l => l.nombre === u.nombre);
+  document.getElementById("lecturaAnterior").textContent = le && le.lecturaAnterior != null ? le.lecturaAnterior : (le ? le.lectura : "—");
+
+  const bloqueado = u.bloqueado;
+  document.getElementById("contador").disabled = bloqueado;
+  document.getElementById("btnGuardar").disabled = bloqueado;
+  document.getElementById("contador").value = "";
+  document.getElementById("bloqueadoBadge").style.display = bloqueado ? "flex" : "none";
+}
+
+// ============================================================
+//  GUARDAR LECTURA
+// ============================================================
+function guardarContador() {
+  const u = usuarios[usuarioIndex];
+  if (!u) { toast("⚠️ Cargue usuarios primero"); return; }
+
+  const val = document.getElementById("contador").value;
+  const nuevaLecturaVal = parseFloat(val);
+  if (val === "" || isNaN(nuevaLecturaVal)) { toast("⚠️ Ingrese una lectura válida"); return; }
+
+  const hora = new Date().toLocaleString('es-CO');
+  let le = lecturas.find(l => l.nombre === u.nombre);
+
+  if (le) {
+    le.lecturaAnterior = le.lectura;
+    le.lectura = nuevaLecturaVal;
+    le.horaLectura = hora;
+    le.lat = gpsCoords ? gpsCoords.lat : null;
+    le.lng = gpsCoords ? gpsCoords.lng : null;
+    le.precision = gpsCoords ? gpsCoords.acc : null;
+  } else {
+    lecturas.push({
+      nombre: u.nombre, ruta: u.ruta, direccion: u.direccion,
+      lecturaAnterior: null, lectura: nuevaLecturaVal, horaLectura: hora,
+      lat: gpsCoords ? gpsCoords.lat : null,
+      lng: gpsCoords ? gpsCoords.lng : null,
+      precision: gpsCoords ? gpsCoords.acc : null
+    });
+  }
+
+  u.bloqueado = true;
+  guardarLecturas(); guardarUsuarios();
+  actualizarHeader(); mostrarUsuario(); mostrarListaUsuarios();
+
+  const gpsMsg = gpsCoords ? ` 📍 ±${gpsCoords.acc}m` : " (sin GPS)";
+  toast("✅ Guardado" + gpsMsg);
+
+  setTimeout(() => siguienteUsuario(), 500);
+}
+
+// ============================================================
+//  NAVEGACIÓN USUARIOS
+// ============================================================
+function siguienteUsuario() {
+  if (usuarioIndex < usuarios.length - 1) { usuarioIndex++; guardarUsuarioIndex(); mostrarUsuario(); }
+}
+function atrasUsuario() {
+  if (usuarioIndex > 0) { usuarioIndex--; guardarUsuarioIndex(); mostrarUsuario(); }
+}
+
+// ============================================================
+//  LISTA
+// ============================================================
+function mostrarListaUsuarios() {
+  const c = document.getElementById("userListContainer");
+  c.innerHTML = "";
+  if (!usuarios.length) {
+    c.innerHTML = '<div style="text-align:center;color:var(--text2);padding:40px;font-size:14px;">No hay usuarios cargados.<br>Ve a Admin para cargar un Excel.</div>';
+    return;
+  }
+  usuarios.forEach((u, i) => {
+    const le = lecturas.find(l => l.nombre === u.nombre);
+    const div = document.createElement("div");
+    div.className = "user-list-item" + (u.bloqueado ? " registrado" : "");
+    div.onclick = () => { usuarioIndex = i; guardarUsuarioIndex(); mostrarUsuario(); goPage('lectura'); };
+    div.innerHTML = `
+      <div class="ul-name">${u.bloqueado ? '✅ ' : ''}${u.nombre}</div>
+      <div class="ul-meta">Ruta ${u.ruta} · ${u.direccion}${le && le.lat ? ' · 📍GPS' : ''}</div>
+      ${le && le.lectura !== undefined ? `<div class="ul-lectura">${le.lectura}</div>` : ''}
+    `;
+    c.appendChild(div);
+  });
+}
+
+// ============================================================
+//  MAPA
+// ============================================================
+function initMap() {
+  if (mapInitialized) { actualizarMapa(); return; }
+  map = L.map('map', { zoomControl: true }).setView([4.5, -73.8], 13);
+  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    attribution: '© OSM', maxZoom: 19
+  }).addTo(map);
+  mapInitialized = true;
+  actualizarMapa();
+  if (gpsCoords) actualizarMiPosicion();
+}
+
+function actualizarMapa() {
+  if (!mapInitialized) return;
+  markers.forEach(m => map.removeLayer(m));
+  markers = [];
+
+  const conGPS = lecturas.filter(l => l.lat && l.lng);
+  const pendientes = usuarios.filter(u => !u.bloqueado);
+
+  let resumen = `Puntos GPS registrados: ${conGPS.length}\nPendientes: ${pendientes.length}`;
+
+  conGPS.forEach(l => {
+    const icon = L.divIcon({
+      html: `<div style="background:#2ecc71;border:2px solid #fff;border-radius:50%;width:14px;height:14px;box-shadow:0 2px 8px rgba(0,0,0,0.4)"></div>`,
+      iconSize: [14, 14], className: ''
+    });
+    const m = L.marker([l.lat, l.lng], { icon }).addTo(map);
+    m.bindPopup(`
+      <div class="popup-name">${l.nombre}</div>
+      <div class="popup-val">${l.lectura}</div>
+      <div class="popup-meta">📍 ${l.direccion}<br>🕐 ${l.horaLectura}<br>±${l.precision || '?'}m</div>
+    `);
+    markers.push(m);
+  });
+
+  if (conGPS.length > 0) {
+    const group = L.featureGroup(markers);
+    map.fitBounds(group.getBounds().pad(0.2));
+  }
+
+  document.getElementById("mapaResumen").innerHTML =
+    `<span style="color:var(--accent)">📍 ${conGPS.length}</span> puntos con GPS<br>` +
+    `<span style="color:var(--warn)">⏳ ${pendientes.length}</span> pendientes<br>` +
+    `<span style="color:var(--agua-claro)">✅ ${usuarios.length - pendientes.length}</span> registrados`;
+}
+
+function actualizarMiPosicion() {
+  if (!mapInitialized || !gpsCoords) return;
+  if (myMarker) map.removeLayer(myMarker);
+  const icon = L.divIcon({
+    html: `<div style="background:#00b4d8;border:3px solid #fff;border-radius:50%;width:16px;height:16px;box-shadow:0 0 12px rgba(0,180,216,0.8)"></div>`,
+    iconSize: [16, 16], className: ''
+  });
+  myMarker = L.marker([gpsCoords.lat, gpsCoords.lng], { icon }).addTo(map);
+  myMarker.bindPopup('<div style="color:#00b4d8;font-weight:700">📱 Mi posición</div>');
+}
+
+// ============================================================
+//  ADMIN — CARGAR EXCEL
+// ============================================================
+function archivoSeleccionado(input) {
+  if (input.files[0]) document.getElementById("fileSelName").textContent = "📁 " + input.files[0].name;
+}
+
+function cargarExcel() {
+  const clave = document.getElementById("claveAcceso").value;
+  if (clave !== "Network15") { toast("❌ Clave incorrecta"); return; }
+  const archivo = document.getElementById("excelFile").files[0];
+  if (!archivo) { toast("⚠️ Seleccione un archivo Excel"); return; }
+
+  const reader = new FileReader();
+  reader.onload = function(e) {
+    try {
+      const wb = XLSX.read(e.target.result, { type: 'binary' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws);
+      usuarios = []; lecturas = [];
+      rows.forEach(r => {
+        const nombre = r.Nombre || r.nombre;
+        const ruta = r.Ruta || r.ruta;
+        const dir = r["Dirección"] || r["Direccion"] || r.direccion || r["Dirección"] || "";
+        if (nombre && ruta) {
+          usuarios.push({ nombre, ruta, direccion: dir, bloqueado: false });
+          lecturas.push({ nombre, ruta, direccion: dir, lecturaAnterior: null, lectura: r.Lectura || r.lectura || null, horaLectura: null, lat: null, lng: null });
+        }
+      });
+      usuarioIndex = 0;
+      guardarUsuarios(); guardarLecturas(); guardarUsuarioIndex();
+      mostrarUsuario(); mostrarListaUsuarios(); actualizarHeader();
+      toast(`✅ ${usuarios.length} usuarios cargados`);
+    } catch(err) { toast("❌ Error leyendo el archivo"); }
+  };
+  reader.readAsBinaryString(archivo);
+}
+
+// ============================================================
+//  EXPORTAR
+// ============================================================
+function descargarExcel() {
+  if (!lecturas.length) { toast("No hay datos para exportar"); return; }
+  const ws = XLSX.utils.json_to_sheet(lecturas.map(l => ({
+    "Nombre": l.nombre, "Ruta": l.ruta, "Dirección": l.direccion,
+    "Lectura Anterior": l.lecturaAnterior,
+    "Lectura Actual": l.lectura,
+    "Latitud": l.lat, "Longitud": l.lng,
+    "Precisión GPS (m)": l.precision,
+    "Fecha y Hora": l.horaLectura
+  })));
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, "Lecturas");
+  XLSX.writeFile(wb, `Lecturas_${sectorActual}_${new Date().toLocaleDateString('es-CO').replace(/\//g,'-')}.xlsx`);
+  toast("📊 Excel descargado");
+}
+
+function exportarKML() {
+  const conGPS = lecturas.filter(l => l.lat && l.lng && l.lectura != null);
+  if (!conGPS.length) { toast("No hay puntos GPS para exportar"); return; }
+  let kml = `<?xml version="1.0" encoding="UTF-8"?>\n<kml xmlns="http://www.opengis.net/kml/2.2">\n<Document>\n<name>Lecturas ${sectorActual}</name>\n`;
+  conGPS.forEach(l => {
+    kml += `<Placemark><name>${l.nombre}</name><description>Lectura: ${l.lectura} | ${l.horaLectura}</description><Point><coordinates>${l.lng},${l.lat},0</coordinates></Point></Placemark>\n`;
+  });
+  kml += `</Document>\n</kml>`;
+  const blob = new Blob([kml], { type: 'application/vnd.google-earth.kml+xml' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `Lecturas_${sectorActual}.kml`;
+  a.click();
+  toast("🗺️ KML descargado");
+}
+
+// ============================================================
+//  CICLO
+// ============================================================
+function nuevaLectura() {
+  if (!confirm("¿Iniciar nuevo ciclo de lecturas? Los contadores se desbloquearán.")) return;
+  usuarios.forEach(u => u.bloqueado = false);
+  lecturas.forEach(l => { l.lecturaAnterior = l.lectura; l.lectura = null; l.horaLectura = null; l.lat = null; l.lng = null; });
+  usuarioIndex = 0;
+  guardarUsuarios(); guardarLecturas(); guardarUsuarioIndex();
+  mostrarUsuario(); mostrarListaUsuarios(); actualizarHeader();
+  toast("🔄 Nuevo ciclo iniciado");
+}
+
+function borrarTodo() {
+  const clave = document.getElementById("claveAcceso").value;
+  if (clave !== "Network15") { toast("❌ Ingrese la clave primero"); return; }
+  if (!confirm("¿Borrar TODOS los datos del sector " + sectorActual + "?")) return;
+  usuarios = []; lecturas = []; usuarioIndex = 0;
+  guardarUsuarios(); guardarLecturas(); guardarUsuarioIndex();
+  mostrarUsuario(); mostrarListaUsuarios(); actualizarHeader();
+  toast("🗑️ Datos borrados");
+}
+
+// ============================================================
+//  NAVEGACIÓN PÁGINAS
+// ============================================================
+function goPage(id) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + id).classList.add('active');
+  document.getElementById('nav-' + id).classList.add('active');
+  if (id === 'mapa') { setTimeout(initMap, 100); }
+  if (id === 'lista') { mostrarListaUsuarios(); }
+}
+
+// ============================================================
+//  TOAST
+// ============================================================
+function toast(msg) {
+  const t = document.getElementById("toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  setTimeout(() => t.classList.remove("show"), 2800);
+}
 </script>
 </body>
 </html>
+
+
